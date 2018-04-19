@@ -1,0 +1,17 @@
+{
+  "name": "dht",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --exit"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bittorrent-dht": "^8.2.0",
+    "mocha": "^5.1.0",
+    "node-gyp": "^3.6.2",
+    "sinon": "^4.5.0"
+  }
+}
