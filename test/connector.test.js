@@ -14,7 +14,7 @@ describe('#dhtConnector', () => {
     it('should publish all keywords on connect', done => {
       const server = dhtConnector({
         host: '127.0.0.1',
-        bootstrap: false
+        bootstrap: []
       });
       const keyword = 'testing';
 
@@ -24,15 +24,16 @@ describe('#dhtConnector', () => {
           nodes: [],
           keywords: [keyword]
         })
-        .catch(() => {});
+        .catch((err) => console.log(err.message));
 
       server.listenPeerAnnouncement(resp => {
+        console.log('Announce', JSON.stringify(resp));
         assert.equal(resp.keyword, keyword);
         assert.equal(resp.peer.port, 5000);
         server.destroy();
         done();
       }, done);
-    });
+    }).timeout(15000);
 
     it.skip('should re-announce(polling) keywords after after a minute', () => {
       //:TODO
@@ -67,7 +68,8 @@ describe('#dhtConnector', () => {
         .catch(() => {});
 
       client.listenPeerLookup(({ peer, keyword, from }) => {
-        assert.deepEqual(peer, { host: '127.0.0.1', port: 5000 });
+        console.log(JSON.stringify(peer));
+        assert.deepEqual(peer, { host: '127.0.0.1', port: 5000, weight: 0 });
         assert.equal(keyword, keyword);
         server.destroy();
         client.destroy();
