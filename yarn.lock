@@ -72,9 +72,9 @@ bencode@^2.0.0:
   dependencies:
     safe-buffer "^5.1.1"
 
-bittorrent-dht@^8.2.0:
+"bittorrent-dht@git+https://scopic.git.beanstalkapp.com/omnibazaar-bittorrent-dht.git":
   version "8.2.0"
-  resolved "https://registry.yarnpkg.com/bittorrent-dht/-/bittorrent-dht-8.2.0.tgz#624dda1573b5a79a634eb2c6b36ac7e5a05f6e1b"
+  resolved "git+https://scopic.git.beanstalkapp.com/omnibazaar-bittorrent-dht.git#539b97d2e74ab2b42b4dbbdaaaa034f4fe361f19"
   dependencies:
     bencode "^2.0.0"
     buffer-equals "^1.0.3"

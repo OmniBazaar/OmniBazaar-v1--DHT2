@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bittorrent-dht": "^8.2.0",
+    "bittorrent-dht": "git+https://scopic.git.beanstalkapp.com/omnibazaar-bittorrent-dht.git",
     "mocha": "^5.1.0",
     "node-gyp": "^3.6.2",
     "sinon": "^4.5.0"
