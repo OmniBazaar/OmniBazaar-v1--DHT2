@@ -76,8 +76,8 @@ describe('#dhtConnector', () => {
         })
         .catch(() => {});
 
-      client.listenPeerLookup(({ peer, keyword, from }) => {
-        assert.deepEqual(peer, { host: '127.0.0.1', port: 5000, weight: 0 });
+      client.listenPeerLookup(({ peers, keyword, from }) => {
+        assert.deepEqual(peers, [{ host: '127.0.0.1', port: 5000, weight: 0 }]);
         assert.equal(testKeyword, keyword);
 
         client.destroy();
@@ -110,8 +110,8 @@ describe('#dhtConnector', () => {
         })
         .catch(() => {});
 
-      client.listenPeerLookup(({ peer, keyword, from }) => {
-        assert.deepEqual(peer, { host: '127.0.0.1', port: 5000, weight: testWeight });
+      client.listenPeerLookup(({ peers, keyword, from }) => {
+        assert.deepEqual(peers, [{ host: '127.0.0.1', port: 5000, weight: testWeight }]);
         assert.equal(testKeyword, keyword);
 
         client.destroy();
