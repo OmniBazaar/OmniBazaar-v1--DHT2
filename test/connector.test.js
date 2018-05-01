@@ -1,13 +1,6 @@
 const assert = require('assert');
-const sinon = require('sinon');
 
 const dhtConnector = require('./../lib/connector');
-
-let clock;
-
-beforeEach(() => (clock = sinon.useFakeTimers()));
-
-afterEach(() => clock.restore());
 
 describe('#dhtConnector', () => {
   describe('#connect', () => {
