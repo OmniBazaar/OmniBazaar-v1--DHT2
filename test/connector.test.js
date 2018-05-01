@@ -32,20 +32,62 @@ describe('#dhtConnector', () => {
 
         server.destroy();
         done();
-      }, done);
+      });
+    });
+  });
+
+  describe('#announce(keyword, weight)', () => {
+    const testKeyword = 'testing';
+    let server;
+
+    beforeEach(async () => {
+      server = dhtConnector({
+        bootstrap: false
+      });
+
+      return server
+        .connect({
+          port: 5000,
+          nodes: [],
+          keywords: []
+        })
+        .catch(() => {});
     });
 
-    it.skip('should re-announce(polling) keywords after after a minute', () => {
-      //:TODO
+    afterEach(() => {
+      server.destroy();
+    });
+
+    it('should announce nodes of new keywords', (done) => {
+      const server2 = dhtConnector({
+        bootstrap: ['127.0.0.1:5000']
+      });
+
+      server2
+        .connect({
+          port: 5001,
+          nodes: []
+        })
+        .catch(() => {});
+
+      server.listenPeerAnnouncement(resp => {
+        assert.equal(resp.keyword, testKeyword);
+        assert.equal(resp.peer.port, 5001);
+        assert.equal(resp.peer.weight, 12);
+
+        server2.destroy();
+        done();
+      });
+
+      server2.announce(testKeyword, 12);
     });
   });
 
   describe('#findPeersFor(keyword)', () => {
-    let testKeyword;
+    const testKeyword = 'testing';
     let server;
 
     beforeEach(() => {
-      testKeyword = 'testing';
       server = dhtConnector({
         host: '127.0.0.1',
         bootstrap: []
@@ -72,7 +114,7 @@ describe('#dhtConnector', () => {
       client
         .connect({
           port: 5001,
-          nodes: [{ host: '127.0.0.1', port: 5000 }]
+          nodes: []
         })
         .catch(() => {});
 
@@ -88,7 +130,7 @@ describe('#dhtConnector', () => {
       client.findPeersFor(testKeyword);
     });
 
-    it('should return peers with weight for keyword', (done) => {
+    it('should return peers with weight for keyword', done => {
       const testWeight = 12;
 
       server
@@ -106,12 +148,14 @@ describe('#dhtConnector', () => {
       client
         .connect({
           port: 5001,
-          nodes: [{ host: '127.0.0.1', port: 5000 }]
+          nodes: []
         })
         .catch(() => {});
 
       client.listenPeerLookup(({ peers, keyword, from }) => {
-        assert.deepEqual(peers, [{ host: '127.0.0.1', port: 5000, weight: testWeight }]);
+        assert.deepEqual(peers, [
+          { host: '127.0.0.1', port: 5000, weight: testWeight }
+        ]);
         assert.equal(testKeyword, keyword);
 
         client.destroy();
