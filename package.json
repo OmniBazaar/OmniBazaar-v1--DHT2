@@ -1,5 +1,5 @@
 {
-  "name": "dht",
+  "name": "omnibazaar-dht",
   "version": "1.0.0",
   "description": "",
   "main": "./lib/connector.js",
