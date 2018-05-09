@@ -2,7 +2,7 @@
   "name": "dht",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "./lib/connector.js",
   "scripts": {
     "test": "mocha --exit"
   },
