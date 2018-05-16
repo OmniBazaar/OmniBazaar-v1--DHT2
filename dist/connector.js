@@ -3,6 +3,7 @@
 var DHT = require('bittorrent-dht');
 
 var ANNOUNCE_INTERVAL = 60000; // 1 minute
+var LOOKUP_WAIT_TIMEOUT = 5000; // 10 seconds
 
 var dhtConnector = function dhtConnector(_ref) {
   var _ref$host = _ref.host,
@@ -19,6 +20,9 @@ var dhtConnector = function dhtConnector(_ref) {
   var timer = null;
   var isPublisher = true;
 
+  var initialPort = void 0;
+  var initialInterval = void 0;
+
   return {
     connect: function connect(_ref2) {
       var _this = this;
@@ -33,6 +37,8 @@ var dhtConnector = function dhtConnector(_ref) {
           _ref2$announceInterva = _ref2.announceInterval,
           announceInterval = _ref2$announceInterva === undefined ? ANNOUNCE_INTERVAL : _ref2$announceInterva;
 
+      initialPort = port;
+      initialInterval = announceInterval;
       isPublisher = asPublisher;
 
       return new Promise(function (resolve) {
@@ -54,10 +60,12 @@ var dhtConnector = function dhtConnector(_ref) {
 
                 resolve();
               }).catch(function (err) {
-                console.log(err.message);
+                console.log('Error when announcing keywords on connect', err.message);
                 resolve();
               });
             });
+          } else {
+            resolve();
           }
         });
       });
@@ -119,17 +127,69 @@ var dhtConnector = function dhtConnector(_ref) {
     findPeersFor: function findPeersFor(keyword) {
       var _this5 = this;
 
-      return new Promise(function (resolve, reject) {
-        dht.lookup(_this5.generateHash(keyword), function (err, nodesWithPeers) {
-          console.log(keyword);
+      var lookupPromise = new Promise(function (resolve) {
+        _this5.listenPeerLookup(function (response) {
+          var peers = response.peers,
+              keyword = response.keyword;
 
-          if (err) {
-            return reject(err);
+
+          if (peers.length) {
+            return resolve(response);
           }
 
-          console.log(nodesWithPeers);
+          return resolve({ noPeers: true });
+        });
 
-          return resolve({ nodesWithPeers: nodesWithPeers });
+        // Lets resolve the promise if 5 secs passes without finding peers(?)
+        setTimeout(function () {
+          console.log('5 secs has passed without a lookup response for \'' + keyword + '\'');
+          console.log('Assuming no peer was found');
+
+          resolve({ noPeers: true, timedOut: true });
+        }, LOOKUP_WAIT_TIMEOUT);
+      });
+
+      dht.lookup(this.generateHash(keyword), function (err) {
+        if (err) {
+          console.log('Error when looking up ' + keyword + ': ', err);
+        }
+      });
+
+      return lookupPromise;
+    },
+
+
+    /**
+     * Since the DHT itself does not provide any message to `delete` a peer,
+     * we destroy the current node in order to connect a new one with out the keyword to remove.
+     *
+     * @param {string} keywordToRemove - Keyword to remove from the DHT
+     * @returns {Promise}
+     */
+    removePeerFor: function removePeerFor(keywordToRemove) {
+      var _this6 = this;
+
+      return new Promise(function (resolve) {
+        keywordsKnown = keywordsKnown.filter(function (_ref4) {
+          var keyword = _ref4.keyword;
+          return keyword !== keywordToRemove;
+        });
+
+        _this6.destroy().then(function () {
+          dht = new DHT({
+            host: host,
+            bootstrap: bootstrap
+          });
+
+          _this6.connect({
+            port: initialPort,
+            nodes: Array.from(dht.nodes),
+            keywords: keywordsKnown,
+            asPublisher: isPublisher,
+            announceInterval: initialInterval
+          }).then(function () {
+            return resolve();
+          });
         });
       });
     },
@@ -158,7 +218,16 @@ var dhtConnector = function dhtConnector(_ref) {
       dht.on(event, callback);
     },
     destroy: function destroy() {
-      return dht.destroy();
+      return new Promise(function (resolve, reject) {
+        dht.destroy(function (err) {
+          if (err) {
+            console.log('Error when destroying node', err);
+            return reject(err);
+          }
+
+          return resolve();
+        });
+      });
     },
     toJSON: function toJSON() {
       return dht.toJSON();
