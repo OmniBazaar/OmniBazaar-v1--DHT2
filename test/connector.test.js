@@ -1,4 +1,5 @@
 const assert = require('assert');
+const sinon = require('sinon');
 
 const dhtConnector = require('./../lib/connector');
 
@@ -155,6 +156,63 @@ describe('#dhtConnector', () => {
           client.destroy();
 
           done();
+        });
+    });
+  });
+
+  describe('#removePeerFor(keyword)', () => {
+    const testKeyword = 'testing';
+    let server;
+    let clock;
+
+    beforeEach(() => {
+      clock = sinon.useFakeTimers();
+
+      server = dhtConnector({
+        host: '127.0.0.1',
+        bootstrap: []
+      });
+    });
+
+    afterEach(() => {
+      clock.restore();
+      server.destroy();
+    });
+
+    it('should make keyword unavailable for lookup in the network', (done) => {
+      server
+        .connect({
+          port: 5000,
+          nodes: [],
+          keywords: [testKeyword]
+        })
+        .then(() => {
+          const client = dhtConnector({
+            bootstrap: ['127.0.0.1:5000']
+          });
+
+          client
+            .connect({
+              port: 5001,
+              nodes: [],
+              asPublisher: false
+            });
+
+          server.removePeerFor(testKeyword)
+            .then(() => {
+              client.findPeersFor(testKeyword)
+                .then(({ noPeers }) => {
+                  assert.ok(noPeers); // No peers were found
+
+                  client.destroy();
+
+                  done();
+                })
+                .catch(done);
+
+                // If after 5 secs the DHT has not found peers, the promise will resolve
+                clock.tick(5000);
+            });
         });
     });
   });
