@@ -26,5 +26,8 @@
     "mocha": "^5.1.0",
     "node-gyp": "^3.6.2",
     "sinon": "^5.0.7"
+  },
+  "peerDependencies": {
+    "babel-core": "^6.21.0"
   }
 }
