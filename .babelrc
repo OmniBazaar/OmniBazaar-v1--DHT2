@@ -1,6 +1,7 @@
 {
   "presets": [
       "./tools/es2015Preset",
+      "stage-0",
       "stage-1"
   ],
   "env": {

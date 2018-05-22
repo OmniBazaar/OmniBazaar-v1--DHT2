@@ -1,5 +1,10 @@
 'use strict';
 
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+require("babel-core/register");
+require("babel-polyfill");
+
 var DHT = require('bittorrent-dht');
 
 var ANNOUNCE_INTERVAL = 60000; // 1 minute
@@ -36,39 +41,70 @@ var dhtConnector = function dhtConnector(_ref) {
           asPublisher = _ref2$asPublisher === undefined ? isPublisher : _ref2$asPublisher,
           _ref2$announceInterva = _ref2.announceInterval,
           announceInterval = _ref2$announceInterva === undefined ? ANNOUNCE_INTERVAL : _ref2$announceInterva;
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                initialPort = port;
+                initialInterval = announceInterval;
+                isPublisher = asPublisher;
 
-      initialPort = port;
-      initialInterval = announceInterval;
-      isPublisher = asPublisher;
+                dht.listen(port, function () {
+                  nodes.forEach(function (node) {
+                    return _this.addNode(node);
+                  });
 
-      return new Promise(function (resolve) {
-        dht.listen(port, function () {
-          nodes.forEach(function (node) {
-            return _this.addNode(node);
-          });
+                  if (!isPublisher) {
+                    return;
+                  }
 
-          if (isPublisher) {
-            dht.on('ready', function () {
-              _this.announceKeywords(keywords).then(function () {
-                timer = _this.setIntervalAnnouncement(keywordsKnown, announceInterval);
+                  dht.on('ready', _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+                    return regeneratorRuntime.wrap(function _callee$(_context) {
+                      while (1) {
+                        switch (_context.prev = _context.next) {
+                          case 0:
+                            _context.prev = 0;
+                            _context.next = 3;
+                            return _this.announceKeywords(keywords);
 
-                dht.on('node', function (node) {
-                  clearInterval(timer);
+                          case 3:
 
-                  timer = _this.setIntervalAnnouncement(keywordsKnown, announceInterval);
+                            timer = _this.setIntervalAnnouncement(keywordsKnown, announceInterval);
+
+                            dht.on('node', function (node) {
+                              clearInterval(timer);
+
+                              timer = _this.setIntervalAnnouncement(keywordsKnown, announceInterval);
+                            });
+                            _context.next = 10;
+                            break;
+
+                          case 7:
+                            _context.prev = 7;
+                            _context.t0 = _context["catch"](0);
+
+                            console.log('Error when announcing keywords on connect', _context.t0.message);
+
+                          case 10:
+                            return _context.abrupt("return");
+
+                          case 11:
+                          case "end":
+                            return _context.stop();
+                        }
+                      }
+                    }, _callee, _this, [[0, 7]]);
+                  })));
                 });
 
-                resolve();
-              }).catch(function (err) {
-                console.log('Error when announcing keywords on connect', err.message);
-                resolve();
-              });
-            });
-          } else {
-            resolve();
+              case 4:
+              case "end":
+                return _context2.stop();
+            }
           }
-        });
-      });
+        }, _callee2, _this);
+      }))();
     },
     setIntervalAnnouncement: function setIntervalAnnouncement(keywords) {
       var _this2 = this;
@@ -87,42 +123,109 @@ var dhtConnector = function dhtConnector(_ref) {
     announce: function announce(keywordToStore, weightToStore) {
       var _this3 = this;
 
-      return new Promise(function (resolve, reject) {
-        if (!isPublisher) {
-          return reject(new Error('Only publishers can announce'));
-        }
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+        var data;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                if (isPublisher) {
+                  _context3.next = 2;
+                  break;
+                }
 
-        if (keywordsKnown.find(function (_ref3) {
-          var keyword = _ref3.keyword,
-              weight = _ref3.weight;
-          return keyword === keywordToStore && weight === weightToStore;
-        })) {
-          return resolve();
-        }
+                throw new Error('Only publishers can announce');
 
-        var data = { keyword: keywordToStore, weight: weightToStore };
+              case 2:
+                if (!keywordsKnown.find(function (_ref4) {
+                  var keyword = _ref4.keyword,
+                      weight = _ref4.weight;
+                  return keyword === keywordToStore && weight === weightToStore;
+                })) {
+                  _context3.next = 5;
+                  break;
+                }
 
-        keywordsKnown.push(data);
+                console.log(keywordToStore + " with weight of " + weightToStore + " has been already announced.");
+                return _context3.abrupt("return");
 
-        dht.announce({ infoHash: _this3.generateHash(data.keyword), weight: data.weight }, function (err) {
-          if (err) {
-            console.log('Error response:', err.message);
+              case 5:
+                data = { keyword: keywordToStore, weight: weightToStore };
+
+
+                keywordsKnown.push(data);
+
+                return _context3.abrupt("return", new Promise(function (resolve) {
+                  dht.announce({ infoHash: _this3.generateHash(data.keyword), weight: data.weight }, function (err) {
+                    if (err) {
+                      console.log('Error response:', err.message);
+                    }
+
+                    resolve();
+                  });
+                }));
+
+              case 8:
+              case "end":
+                return _context3.stop();
+            }
           }
-
-          return resolve();
-        });
-      });
+        }, _callee3, _this3);
+      }))();
     },
-    announceKeywords: function announceKeywords(keywords) {
+    announceKeywords: function announceKeywords() {
       var _this4 = this;
 
-      return Promise.all(keywords.map(function (payload) {
-        if (typeof payload === 'string') {
-          return _this4.announce(payload);
-        }
+      var keywords = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                keywords.forEach(function () {
+                  var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(payload) {
+                    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+                      while (1) {
+                        switch (_context4.prev = _context4.next) {
+                          case 0:
+                            if (!(typeof payload === 'string')) {
+                              _context4.next = 4;
+                              break;
+                            }
 
-        return _this4.announce(payload.keyword, payload.weight);
-      }));
+                            _context4.next = 3;
+                            return _this4.announce(payload);
+
+                          case 3:
+                            return _context4.abrupt("return", _context4.sent);
+
+                          case 4:
+                            _context4.next = 6;
+                            return _this4.announce(payload.keyword, payload.weight);
+
+                          case 6:
+                            return _context4.abrupt("return", _context4.sent);
+
+                          case 7:
+                          case "end":
+                            return _context4.stop();
+                        }
+                      }
+                    }, _callee4, _this4);
+                  }));
+
+                  return function (_x3) {
+                    return _ref5.apply(this, arguments);
+                  };
+                }());
+
+              case 1:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, _this4);
+      }))();
     },
     findPeersFor: function findPeersFor(keyword) {
       var _this5 = this;
@@ -142,7 +245,7 @@ var dhtConnector = function dhtConnector(_ref) {
 
         // Lets resolve the promise if 5 secs passes without finding peers(?)
         setTimeout(function () {
-          console.log('5 secs has passed without a lookup response for \'' + keyword + '\'');
+          console.log("5 secs has passed without a lookup response for '" + keyword + "'");
           console.log('Assuming no peer was found');
 
           resolve({ noPeers: true, timedOut: true });
@@ -151,7 +254,7 @@ var dhtConnector = function dhtConnector(_ref) {
 
       dht.lookup(this.generateHash(keyword), function (err) {
         if (err) {
-          console.log('Error when looking up ' + keyword + ': ', err);
+          console.log("Error when looking up " + keyword + ": ", err);
         }
       });
 
@@ -169,29 +272,67 @@ var dhtConnector = function dhtConnector(_ref) {
     removePeerFor: function removePeerFor(keywordToRemove) {
       var _this6 = this;
 
-      return new Promise(function (resolve) {
-        keywordsKnown = keywordsKnown.filter(function (_ref4) {
-          var keyword = _ref4.keyword;
-          return keyword !== keywordToRemove;
-        });
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6() {
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                keywordsKnown = keywordsKnown.filter(function (_ref6) {
+                  var keyword = _ref6.keyword;
+                  return keyword !== keywordToRemove;
+                });
 
-        _this6.destroy().then(function () {
-          dht = new DHT({
-            host: host,
-            bootstrap: bootstrap
-          });
+                _context6.next = 3;
+                return _this6.discardCurrentKeywordsWith(keywordsKnown);
 
-          _this6.connect({
-            port: initialPort,
-            nodes: Array.from(dht.nodes),
-            keywords: keywordsKnown,
-            asPublisher: isPublisher,
-            announceInterval: initialInterval
-          }).then(function () {
-            return resolve();
-          });
-        });
-      });
+              case 3:
+                return _context6.abrupt("return", _context6.sent);
+
+              case 4:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, _this6);
+      }))();
+    },
+    discardCurrentKeywordsWith: function discardCurrentKeywordsWith() {
+      var _this7 = this;
+
+      var newKeywords = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+      return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
+        var nodes;
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                nodes = Array.from(dht.nodes);
+
+
+                _this7.destroy().then(function () {
+                  dht = new DHT({
+                    host: host,
+                    bootstrap: bootstrap
+                  });
+
+                  _this7.connect({
+                    nodes: nodes,
+                    port: initialPort,
+                    keywords: newKeywords,
+                    asPublisher: isPublisher,
+                    announceInterval: initialInterval
+                  }).then(function () {
+                    return true;
+                  });
+                });
+
+              case 2:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, _this7);
+      }))();
     },
     generateHash: function generateHash(value) {
       return Buffer.from(value);
