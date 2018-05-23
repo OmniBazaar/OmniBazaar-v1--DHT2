@@ -5,7 +5,7 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 require("babel-core/register");
 require("babel-polyfill");
 
-var DHT = require('bittorrent-dht');
+var DHT = require('omnibazaar-bittorrent-dht');
 
 var ANNOUNCE_INTERVAL = 60000; // 1 minute
 var LOOKUP_WAIT_TIMEOUT = 5000; // 10 seconds
