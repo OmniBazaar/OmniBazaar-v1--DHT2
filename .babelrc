@@ -1,12 +1,16 @@
 {
   "presets": [
-      "./tools/es2015Preset",
-      "stage-0",
-      "stage-1"
+    "./tools/es2015Preset",
+    "stage-0",
+    "stage-1"
   ],
   "env": {
-      "cjs": {
-          "plugins": ["add-module-exports"]
-      }
+    "targets": {
+      "node": 7,
+      "useBuiltIns": true
+    },
+    "cjs": {
+      "plugins": ["add-module-exports"]
+    }
   }
 }

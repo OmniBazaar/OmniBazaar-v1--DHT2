@@ -2,8 +2,7 @@
 
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
-require("babel-core/register");
-require("babel-polyfill");
+require('babel-polyfill');
 
 var DHT = require('omnibazaar-bittorrent-dht');
 
@@ -82,15 +81,15 @@ var dhtConnector = function dhtConnector(_ref) {
 
                           case 7:
                             _context.prev = 7;
-                            _context.t0 = _context["catch"](0);
+                            _context.t0 = _context['catch'](0);
 
                             console.log('Error when announcing keywords on connect', _context.t0.message);
 
                           case 10:
-                            return _context.abrupt("return");
+                            return _context.abrupt('return');
 
                           case 11:
-                          case "end":
+                          case 'end':
                             return _context.stop();
                         }
                       }
@@ -99,7 +98,7 @@ var dhtConnector = function dhtConnector(_ref) {
                 });
 
               case 4:
-              case "end":
+              case 'end':
                 return _context2.stop();
             }
           }
@@ -146,8 +145,8 @@ var dhtConnector = function dhtConnector(_ref) {
                   break;
                 }
 
-                console.log(keywordToStore + " with weight of " + weightToStore + " has been already announced.");
-                return _context3.abrupt("return");
+                console.log(keywordToStore + ' with weight of ' + weightToStore + ' has been already announced.');
+                return _context3.abrupt('return');
 
               case 5:
                 data = { keyword: keywordToStore, weight: weightToStore };
@@ -155,7 +154,7 @@ var dhtConnector = function dhtConnector(_ref) {
 
                 keywordsKnown.push(data);
 
-                return _context3.abrupt("return", new Promise(function (resolve) {
+                return _context3.abrupt('return', new Promise(function (resolve) {
                   dht.announce({ infoHash: _this3.generateHash(data.keyword), weight: data.weight }, function (err) {
                     if (err) {
                       console.log('Error response:', err.message);
@@ -166,7 +165,7 @@ var dhtConnector = function dhtConnector(_ref) {
                 }));
 
               case 8:
-              case "end":
+              case 'end':
                 return _context3.stop();
             }
           }
@@ -197,17 +196,17 @@ var dhtConnector = function dhtConnector(_ref) {
                             return _this4.announce(payload);
 
                           case 3:
-                            return _context4.abrupt("return", _context4.sent);
+                            return _context4.abrupt('return', _context4.sent);
 
                           case 4:
                             _context4.next = 6;
                             return _this4.announce(payload.keyword, payload.weight);
 
                           case 6:
-                            return _context4.abrupt("return", _context4.sent);
+                            return _context4.abrupt('return', _context4.sent);
 
                           case 7:
-                          case "end":
+                          case 'end':
                             return _context4.stop();
                         }
                       }
@@ -220,7 +219,7 @@ var dhtConnector = function dhtConnector(_ref) {
                 }());
 
               case 1:
-              case "end":
+              case 'end':
                 return _context5.stop();
             }
           }
@@ -245,7 +244,7 @@ var dhtConnector = function dhtConnector(_ref) {
 
         // Lets resolve the promise if 5 secs passes without finding peers(?)
         setTimeout(function () {
-          console.log("5 secs has passed without a lookup response for '" + keyword + "'");
+          console.log('5 secs has passed without a lookup response for \'' + keyword + '\'');
           console.log('Assuming no peer was found');
 
           resolve({ noPeers: true, timedOut: true });
@@ -254,7 +253,7 @@ var dhtConnector = function dhtConnector(_ref) {
 
       dht.lookup(this.generateHash(keyword), function (err) {
         if (err) {
-          console.log("Error when looking up " + keyword + ": ", err);
+          console.log('Error when looking up ' + keyword + ': ', err);
         }
       });
 
@@ -286,10 +285,10 @@ var dhtConnector = function dhtConnector(_ref) {
                 return _this6.discardCurrentKeywordsWith(keywordsKnown);
 
               case 3:
-                return _context6.abrupt("return", _context6.sent);
+                return _context6.abrupt('return', _context6.sent);
 
               case 4:
-              case "end":
+              case 'end':
                 return _context6.stop();
             }
           }
@@ -327,7 +326,7 @@ var dhtConnector = function dhtConnector(_ref) {
                 });
 
               case 2:
-              case "end":
+              case 'end':
                 return _context7.stop();
             }
           }
