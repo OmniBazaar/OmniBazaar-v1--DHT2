@@ -230,10 +230,20 @@ var dhtConnector = function dhtConnector(_ref) {
       var _this5 = this;
 
       var lookupPromise = new Promise(function (resolve) {
+        // Lets resolve the promise if 5 secs passes without finding peers(?)
+        var lookupTimeOut = setTimeout(function () {
+          console.log('5 secs has passed without a lookup response for \'' + keyword + '\'');
+          console.log('Assuming no peer was found');
+
+          resolve({ noPeers: true, timedOut: true });
+        }, LOOKUP_WAIT_TIMEOUT);
+
         _this5.listenPeerLookup(function (response) {
           var peers = response.peers,
               keyword = response.keyword;
 
+
+          clearTimeout(lookupTimeOut);
 
           if (peers.length) {
             return resolve(response);
@@ -241,14 +251,6 @@ var dhtConnector = function dhtConnector(_ref) {
 
           return resolve({ noPeers: true });
         });
-
-        // Lets resolve the promise if 5 secs passes without finding peers(?)
-        setTimeout(function () {
-          console.log('5 secs has passed without a lookup response for \'' + keyword + '\'');
-          console.log('Assuming no peer was found');
-
-          resolve({ noPeers: true, timedOut: true });
-        }, LOOKUP_WAIT_TIMEOUT);
       });
 
       dht.lookup(this.generateHash(keyword), function (err) {
