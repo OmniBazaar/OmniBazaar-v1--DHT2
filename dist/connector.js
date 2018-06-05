@@ -361,6 +361,8 @@ var dhtConnector = function dhtConnector(_ref) {
     },
     destroy: function destroy() {
       return new Promise(function (resolve, reject) {
+        keywordsKnown = [];
+
         dht.destroy(function (err) {
           if (err) {
             console.log('Error when destroying node', err);
