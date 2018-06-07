@@ -238,19 +238,23 @@ var dhtConnector = function dhtConnector(_ref) {
           resolve({ noPeers: true, timedOut: true });
         }, LOOKUP_WAIT_TIMEOUT);
 
-        _this5.listenPeerLookup(function (response) {
-          var peers = response.peers,
-              keyword = response.keyword;
+        _this5.listenPeerLookup(function (key) {
+          return function (response) {
+            var peers = response.peers,
+                keyword = response.keyword;
 
 
-          clearTimeout(lookupTimeOut);
+            if (key === keyword) {
+              clearTimeout(lookupTimeOut);
 
-          if (peers.length) {
-            return resolve(response);
-          }
+              if (peers.length) {
+                return resolve(response);
+              }
 
-          return resolve({ noPeers: true });
-        });
+              return resolve({ noPeers: true });
+            }
+          };
+        }(keyword));
       });
 
       dht.lookup(this.generateHash(keyword), function (err) {
