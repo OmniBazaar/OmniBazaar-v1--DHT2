@@ -113,7 +113,7 @@ describe('#dhtConnector', () => {
         .catch(() => {});
 
       client.findPeersFor(testKeyword)
-        .then(({ peers, keyword, from }) => {
+        .then(([{ peers, keyword }]) => {
           assert.deepEqual(peers, [{ host: '127.0.0.1', port: 5000, weight: 0 }]);
           assert.equal(testKeyword, keyword);
 
@@ -147,7 +147,7 @@ describe('#dhtConnector', () => {
         .catch(() => {});
 
       client.findPeersFor(testKeyword)
-        .then(({ peers, keyword, from }) => {
+        .then(([{ peers, keyword }]) => {
           assert.deepEqual(peers, [
             { host: '127.0.0.1', port: 5000, weight: testWeight }
           ]);
@@ -201,8 +201,9 @@ describe('#dhtConnector', () => {
           server.removePeerFor(testKeyword)
             .then(() => {
               client.findPeersFor(testKeyword)
-                .then(({ noPeers }) => {
+                .then(([{ noPeers, from }]) => {
                   assert.ok(noPeers); // No peers were found
+                  console.log(from);
 
                   client.destroy();
 
