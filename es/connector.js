@@ -1,5 +1,7 @@
 'use strict';
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 require('babel-polyfill');
@@ -123,7 +125,7 @@ var dhtConnector = function dhtConnector(_ref) {
       var _this3 = this;
 
       return _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-        var data;
+        var key, data;
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -136,20 +138,22 @@ var dhtConnector = function dhtConnector(_ref) {
                 throw new Error('Only publishers can announce');
 
               case 2:
+                key = keywordToStore.toLowerCase();
+
                 if (!keywordsKnown.find(function (_ref4) {
                   var keyword = _ref4.keyword,
                       weight = _ref4.weight;
-                  return keyword === keywordToStore && weight === weightToStore;
+                  return keyword === key && weight === weightToStore;
                 })) {
-                  _context3.next = 5;
+                  _context3.next = 6;
                   break;
                 }
 
                 console.log(keywordToStore + ' with weight of ' + weightToStore + ' has been already announced.');
                 return _context3.abrupt('return');
 
-              case 5:
-                data = { keyword: keywordToStore, weight: weightToStore };
+              case 6:
+                data = { keyword: key, weight: weightToStore };
 
 
                 keywordsKnown.push(data);
@@ -164,7 +168,7 @@ var dhtConnector = function dhtConnector(_ref) {
                   });
                 }));
 
-              case 8:
+              case 9:
               case 'end':
                 return _context3.stop();
             }
@@ -229,14 +233,16 @@ var dhtConnector = function dhtConnector(_ref) {
     findPeersFor: function findPeersFor(keyword) {
       var _this5 = this;
 
-      var lookupPromise = new Promise(function (resolve) {
+      return new Promise(function (resolve) {
         // Lets resolve the promise if 5 secs passes without finding peers(?)
         var lookupTimeOut = setTimeout(function () {
           console.log('5 secs has passed without a lookup response for \'' + keyword + '\'');
           console.log('Assuming no peer was found');
 
-          resolve({ noPeers: true, timedOut: true });
+          resolve([{ noPeers: true, timedOut: true }]);
         }, LOOKUP_WAIT_TIMEOUT);
+
+        var results = [];
 
         _this5.listenPeerLookup(function (key) {
           return function (response) {
@@ -248,22 +254,22 @@ var dhtConnector = function dhtConnector(_ref) {
               clearTimeout(lookupTimeOut);
 
               if (peers.length) {
-                return resolve(response);
+                return results.push(response);
               }
 
-              return resolve({ noPeers: true });
+              return results.push(_extends({ noPeers: true }, response, { peers: null }));
             }
           };
-        }(keyword));
-      });
+        }(keyword.toLowerCase()));
 
-      dht.lookup(this.generateHash(keyword), function (err) {
-        if (err) {
-          console.log('Error when looking up ' + keyword + ': ', err);
-        }
-      });
+        dht.lookup(_this5.generateHash(keyword.toLowerCase()), function (err) {
+          if (err) {
+            console.log('Error when looking up ' + keyword + ': ', err);
+          }
 
-      return lookupPromise;
+          resolve(results);
+        });
+      });
     },
 
 
