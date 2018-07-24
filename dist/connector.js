@@ -145,14 +145,13 @@ var dhtConnector = function dhtConnector(_ref) {
                       weight = _ref4.weight;
                   return keyword === key && weight === weightToStore;
                 })) {
-                  _context3.next = 6;
+                  _context3.next = 5;
                   break;
                 }
 
-                console.log(keywordToStore + ' with weight of ' + weightToStore + ' has been already announced.');
                 return _context3.abrupt('return');
 
-              case 6:
+              case 5:
                 data = { keyword: key, weight: weightToStore };
 
 
@@ -168,7 +167,7 @@ var dhtConnector = function dhtConnector(_ref) {
                   });
                 }));
 
-              case 9:
+              case 8:
               case 'end':
                 return _context3.stop();
             }
@@ -236,8 +235,8 @@ var dhtConnector = function dhtConnector(_ref) {
       return new Promise(function (resolve) {
         // Lets resolve the promise if 5 secs passes without finding peers(?)
         var lookupTimeOut = setTimeout(function () {
-          console.log('5 secs has passed without a lookup response for \'' + keyword + '\'');
-          console.log('Assuming no peer was found');
+          //console.log(`5 secs has passed without a lookup response for '${keyword}'`);
+          //console.log('Assuming no peer was found');
 
           resolve([{ noPeers: true, timedOut: true }]);
         }, LOOKUP_WAIT_TIMEOUT);
