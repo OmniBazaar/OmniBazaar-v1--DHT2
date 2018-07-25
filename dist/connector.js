@@ -160,7 +160,10 @@ var dhtConnector = function dhtConnector(_ref) {
                 return _context3.abrupt('return', new Promise(function (resolve) {
                   dht.announce({ infoHash: _this3.generateHash(data.keyword), weight: data.weight }, function (err) {
                     if (err) {
-                      console.log('Error response:', err.message);
+                      //No nodes to query is too annoying
+                      if (err.message !== 'No nodes to query') {
+                        console.log('Error response:', err.message);
+                      }
                     }
 
                     resolve();
