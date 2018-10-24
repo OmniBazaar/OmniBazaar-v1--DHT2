@@ -29,6 +29,8 @@ var dhtConnector = function dhtConnector(_ref) {
   var initialPort = void 0;
   var initialInterval = void 0;
 
+  var lookupHandlers = {};
+
   return {
     connect: function connect(_ref2) {
       var _this = this;
@@ -55,6 +57,8 @@ var dhtConnector = function dhtConnector(_ref) {
                   nodes.forEach(function (node) {
                     return _this.addNode(node);
                   });
+
+                  _this.setupListenPeerLookup();
 
                   if (!isPublisher) {
                     return;
@@ -235,36 +239,50 @@ var dhtConnector = function dhtConnector(_ref) {
     findPeersFor: function findPeersFor(keyword) {
       var _this5 = this;
 
+      var nomalizedKeyword = keyword.toLowerCase();
       return new Promise(function (resolve) {
         // Lets resolve the promise if 5 secs passes without finding peers(?)
         var lookupTimeOut = setTimeout(function () {
           //console.log(`5 secs has passed without a lookup response for '${keyword}'`);
           //console.log('Assuming no peer was found');
 
+          _this5.removeLookupHandlers(nomalizedKeyword);
+
           resolve([{ noPeers: true, timedOut: true }]);
         }, LOOKUP_WAIT_TIMEOUT);
 
         var results = [];
 
-        _this5.listenPeerLookup(function (key) {
-          return function (response) {
-            var peers = response.peers,
-                keyword = response.keyword;
+        _this5.addLookupHandler(nomalizedKeyword, function (response) {
+          clearTimeout(lookupTimeOut);
+
+          var peers = response.peers;
 
 
-            if (key === keyword) {
-              clearTimeout(lookupTimeOut);
+          if (peers.length) {
+            return results.push(response);
+          }
 
-              if (peers.length) {
-                return results.push(response);
-              }
+          results.push(_extends({ noPeers: true }, response, { peers: null }));
+        });
 
-              return results.push(_extends({ noPeers: true }, response, { peers: null }));
-            }
-          };
-        }(keyword.toLowerCase()));
+        // this.listenPeerLookup((key => (response) => {
+        //   const { peers, keyword } = response;
 
-        dht.lookup(_this5.generateHash(keyword.toLowerCase()), function (err) {
+        //   if (key === keyword) {
+        //     clearTimeout(lookupTimeOut);
+
+        //     if (peers.length) {
+        //       return results.push(response);
+        //     }
+
+        //     return results.push({ noPeers: true, ...response, peers: null });
+        //   }
+        // })(keyword.toLowerCase()));
+
+        dht.lookup(_this5.generateHash(nomalizedKeyword), function (err) {
+          _this5.removeLookupHandlers(nomalizedKeyword);
+
           if (err) {
             console.log('Error when looking up ' + keyword + ': ', err);
           }
@@ -350,24 +368,42 @@ var dhtConnector = function dhtConnector(_ref) {
     generateHash: function generateHash(value) {
       return Buffer.from(value);
     },
+    setupListenPeerLookup: function setupListenPeerLookup() {
+      keywordsKnown = [];
+      dht.on('peers', function (peers, keywordHash, from) {
+        var keyword = keywordHash.toString();
+        if (lookupHandlers[keyword]) {
+          lookupHandlers[keyword]({ peers: peers, keyword: keyword, from: from });
+        }
+      });
+    },
+    addLookupHandler: function addLookupHandler(keyword, handler) {
+      lookupHandlers[keyword] = handler;
+    },
+    removeLookupHandlers: function removeLookupHandlers(keyword) {
+      if (lookupHandlers[keyword]) {
+        delete lookupHandlers[keyword];
+      }
+    },
     listenPeerAnnouncement: function listenPeerAnnouncement(handler) {
       dht.on('announce', function (peer, keywordHash) {
         handler({ peer: peer, keyword: keywordHash.toString() });
       });
     },
-    listenPeerLookup: function listenPeerLookup(handler) {
-      var perPeer = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
-      if (perPeer) {
-        dht.on('peer', function (peer, keywordHash, from) {
-          handler({ peer: peer, keyword: keywordHash.toString(), from: from });
-        });
-      } else {
-        dht.on('peers', function (peers, keywordHash, from) {
-          handler({ peers: peers, keyword: keywordHash.toString(), from: from });
-        });
-      }
-    },
+
+    // listenPeerLookup(handler, perPeer = false) {
+    //   if (perPeer) {
+    //     dht.on('peer', (peer, keywordHash, from) => {
+    //       handler({ peer, keyword: keywordHash.toString(), from })
+    //     });
+    //   } else {
+    //     dht.on('peers', (peers, keywordHash, from) => {
+    //       handler({ peers, keyword: keywordHash.toString(), from })
+    //     });
+    //   }
+    // },
+
     on: function on(event, callback) {
       dht.on(event, callback);
     },
